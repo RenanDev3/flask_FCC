@@ -1,6 +1,22 @@
 from flask import Flask, render_template
+from flask_sqlalchemy import SQLAlchemy
 
+db = SQLAlchemy()
 app = Flask(__name__)
+# app.config it's a dictionary where you can add more properties like the one below
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///market.db"
+db.init_app(app)
+
+
+class Item(db.Model):
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(length=30), nullable=False, unique=True)
+    price = db.Column(db.Integer(), nullable=False)
+    barcode = db.Column(db.String(length=12), nullable=False, unique=True)
+    description = db.Column(db.String(length=1024), nullable=False)
+
+    def __repr__(self):
+        return f'Item {self.name}'
 
 
 @app.route('/home')
@@ -11,9 +27,5 @@ def home_page():
 
 @app.route('/market')
 def market_page():
-    items = [
-        {'id': 1, 'name': 'Phone', 'barcode': '7812357216541', 'price': 500},
-        {'id': 2, 'name': 'Laptop', 'barcode': '256486145874', 'price': 900},
-        {'id': 3, 'name': 'Keyboard', 'barcode': '3131268786132', 'price': 50}
-    ]
+    items = Item.query.all()
     return render_template('market.html', items=items)
